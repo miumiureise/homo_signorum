@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HOMO SIGNORUM — The Zodiacal Physician</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-parchment: #f4ecd8;
+            --color-gold: #c5a059;
+            --color-gold-dark: #8e6d2d;
+            --color-crimson: #7b1113;
+            --color-indigo: #2c3e50;
+            --color-ink: #3d352a;
+            --font-cinzel: 'Cinzel', serif;
+            --font-noto: 'Noto Serif JP', serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #1a1a1a;
+            color: var(--color-ink);
+            font-family: var(--font-noto);
+            -webkit-font-smoothing: antialiased;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            background-color: var(--color-parchment);
+            background-image: url('https://www.transparenttextures.com/patterns/beige-paper.png');
+            width: 100vw;
+            height: 100vh;
+            display: grid;
+            grid-template-columns: 300px 1fr 300px;
+            grid-template-rows: 1fr 200px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 100px rgba(0,0,0,0.2);
+        }
+
+        .panel {
+            padding: 2rem;
+            border: 1px solid rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            overflow-y: auto;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .panel-title {
+            font-family: var(--font-cinzel);
+            font-weight: 700;
+            text-align: center;
+            border-bottom: 2px solid var(--color-gold);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            color: var(--color-crimson);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control-group label {
+            font-family: var(--font-cinzel);
+            font-size: 0.8rem;
+            color: var(--color-gold-dark);
+        }
+
+        input, select, button {
+            background: transparent;
+            border: 1px solid var(--color-gold);
+            padding: 0.5rem;
+            font-family: var(--font-noto);
+            color: var(--color-ink);
+            cursor: pointer;
+        }
+
+        .main-display {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .zodiac-wheel {
+            position: relative;
+            width: 600px;
+            height: 600px;
+        }
+
+        .zodiac-man {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            height: 450px;
+            z-index: 10;
+        }
+
+        .body-part {
+            cursor: pointer;
+            transition: fill 0.3s, stroke 0.3s;
+        }
+
+        .body-part:hover {
+            fill: var(--color-gold) !important;
+            stroke: var(--color-crimson) !important;
+        }
+
+        .body-part.active {
+            fill: var(--color-gold) !important;
+            stroke: var(--color-crimson) !important;
+            stroke-width: 3;
+            filter: drop-shadow(0 0 5px var(--color-gold));
+        }
+
+        .zodiac-ring {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .moon-hand {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 4px;
+            height: 300px;
+            background: linear-gradient(to bottom, var(--color-crimson), transparent);
+            transform-origin: bottom center;
+            transform: translate(-50%, -100%) rotate(0deg);
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 20;
+            pointer-events: none;
+            box-shadow: 0 0 10px rgba(123, 17, 19, 0.5);
+        }
+
+        .moon-hand::after {
+            content: '🌙';
+            position: absolute;
+            top: -20px;
+            left: -8px;
+            font-size: 20px;
+        }
+
+        .footer-panel {
+            grid-column: 1 / -1;
+            border-top: 3px double var(--color-gold);
+            background: rgba(0,0,0,0.05);
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            padding: 1rem 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .app-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto;
+                overflow-y: auto;
+                height: auto;
+            }
+            .main-display {
+                padding: 4rem 0;
+            }
+            .zodiac-wheel {
+                width: 300px;
+                height: 300px;
+            }
+            .zodiac-man {
+                width: 150px;
+                height: 225px;
+            }
+            .footer-panel {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="panel">
+            <h2 class="panel-title">Temporis</h2>
+            <div class="control-group">
+                <label>Datum</label>
+                <input type="datetime-local" id="dateInput">
+            </div>
+            <div class="control-group">
+                <label>Zona Temporis</label>
+                <select id="timezoneInput">
+                    <option value="Europe/Vienna">Europe/Vienna</option>
+                    <option value="Asia/Tokyo">Asia/Tokyo</option>
+                    <option value="UTC">UTC</option>
+                </select>
+            </div>
+            <div class="control-group" style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+                <button id="resetBtn">Reset</button>
+                <button id="nextDayBtn">+1d</button>
+                <button id="prevDayBtn">-1d</button>
+            </div>
+            <div style="margin-top: 2rem; border-top: 1px solid var(--color-gold); padding-top: 1rem;">
+                <h3 style="font-family: Cinzel; font-size: 0.9rem; color: var(--color-crimson)">Astronomia</h3>
+                <div id="astroData" style="font-size: 0.8rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                    <!-- Data populated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <div class="main-display">
+            <div class="zodiac-wheel">
+                <svg viewBox="0 0 600 600" class="zodiac-ring" id="zodiacRingSVG"></svg>
+                <div class="moon-hand" id="moonHand"></div>
+            </div>
+            <svg viewBox="0 0 300 420" class="zodiac-man" id="zodiacManSVG"></svg>
+        </div>
+
+        <div class="panel">
+            <h2 class="panel-title">Interpretatio</h2>
+            <div style="text-align: center; margin-bottom: 1rem;">
+                <div id="signSymbol" style="font-size: 2rem; color: var(--color-gold-dark)"></div>
+                <div id="signLatin" style="font-family: Cinzel; font-size: 1.5rem; font-weight: bold"></div>
+                <div id="signJapanese" style="font-size: 1rem"></div>
+            </div>
+            <div style="border: 1px solid var(--color-gold); padding: 1rem; border-radius: 4px; background: rgba(0,0,0,0.03)">
+                <div style="font-family: Cinzel; font-size: 0.8rem; color: var(--color-gold-dark); margin-bottom: 0.5rem">REGIO CORPORIS</div>
+                <div id="bodyPart" style="font-size: 1.1rem; font-weight: bold; margin-bottom: 1rem"></div>
+                <div style="font-family: Cinzel; font-size: 0.8rem; color: var(--color-gold-dark); margin-bottom: 0.5rem">INTERPRETATIO HISTORICA</div>
+                <div id="histContext" style="font-size: 0.9rem; line-height: 1.6; font-style: italic"></div>
+            </div>
+            <div style="font-size: 0.7rem; margin-top: 1rem; color: gray; text-align: center;">
+                ※ これは歴史的な信念の紹介であり、現代医学に基づく医療判断ではありません。
+            </div>
+        </div>
+
+        <div class="footer-panel">
+            <div style="border-right: 1px solid var(--color-gold); padding-right: 1rem">
+                <h3 style="font-family: Cinzel; font-size: 0.9rem; color: var(--color-crimson)">Humores (Four Humors)</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.8rem">
+                    <div style="white-space: nowrap;"><strong style="white-space: nowrap;">Sanguis</strong> (血液) - Air/Hot/Moist</div>
+                    <div style="white-space: nowrap;"><strong style="white-space: nowrap;">Phlegma</strong> (粘液) - Water/Cold/Moist</div>
+                    <div style="white-space: nowrap;"><strong style="white-space: nowrap;">Cholera</strong> (黄胆汁) - Fire/Hot/Dry</div>
+                    <div style="white-space: nowrap;"><strong style="white-space: nowrap;">Melancholia</strong> (黒胆汁) - Earth/Cold/Dry</div>
+                </div>
+            </div>
+            <div style="padding: 0 1rem; border-right: 1px solid var(--color-gold)">
+                <h3 style="font-family: Cinzel; font-size: 0.9rem; color: var(--color-crimson)">Instructiones</h3>
+                <div style="font-size: 0.7rem; line-height: 1.4">
+                    日付を変更して月の位置を確認してください。人体図の部位をクリックして詳細を確認できます。
+                </div>
+            </div>
+            <div style="padding-left: 1rem">
+                <h3 style="font-family: Cinzel; font-size: 0.9rem; color: var(--color-crimson)">Fontes</h3>
+                <div style="font-size: 0.7rem; color: gray">
+                    Based on the tradition of the Homo Signorum. Historical astronomical calculations are approximated.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ZODIAC_SIGNS = [
+            { id: 'aries', latin: 'Aries', japanese: '牡羊座', bodyPart: '頭部', symbol: '♈', context: '中世医療占星術では、月が牡羊座にあるとき、頭部への処置を避けるべきだと考える伝統がありました。' },
+            { id: 'taurus', latin: 'Taurus', japanese: '牡牛座', bodyPart: '首・喉', symbol: '♉', context: '牡牛座は喉や甲状腺、首の領域を司るとされ、この時期の頸部への介入は慎重に行われました。' },
+            { id: 'gemini', latin: 'Gemini', japanese: '双子座', bodyPart: '肩・腕', symbol: '♊', context: '双子座は呼吸器系や腕、肩を象徴し、空気の元素に関連付けられていました。' },
+            { id: 'cancer', latin: 'Cancer', japanese: '蟹座', bodyPart: '胸部', symbol: '♋', context: '蟹座は胸部や胃を司り、水分と感情の領域に関連付けられていました。' },
+            { id: 'leo', latin: 'Leo', japanese: '獅子座', bodyPart: '心臓・背中', symbol: '♌', context: '獅子座は心臓や脊椎の上部を象徴し、火の元素の強烈なエネルギーを反映していました。' },
+            { id: 'virgo', latin: 'Virgo', japanese: '乙女座', bodyPart: '腹部・腸', symbol: '♍', context: '乙女座は消化器系、特に腸などの腹部領域を詳細に管理すると考えられていました。' },
+            { id: 'libra', latin: 'Libra', japanese: '天秤座', bodyPart: '腰・腎臓周辺', symbol: '♎', context: '天秤座は腰部や腎臓、バランスの領域を象徴していました。' },
+            { id: 'scorpius', latin: 'Scorpius', japanese: '蠍座', bodyPart: '生殖器周辺', symbol: '♏', context: '蠍座は生殖器や排泄器官など、身体の最も深い部分を司るとされていました。' },
+            { id: 'sagittarius', latin: 'Sagittarius', japanese: '射手座', bodyPart: '大腿部', symbol: '♐', context: '射手座は太ももや股関節などの大きな筋肉部位を象徴していました。' },
+            { id: 'capricornus', latin: 'Capricornus', japanese: '山羊座', bodyPart: '膝', symbol: '♑', context: '山羊座は膝や関節、骨格の構造に関連付けられていました。' },
+            { id: 'aquarius', latin: 'Aquarius', japanese: '水瓶座', bodyPart: 'すね・ふくらはぎ', symbol: '♒', context: '水瓶座は下腿部や足首、循環器系の末端を象徴していました。' },
+            { id: 'pisces', latin: 'Pisces', japanese: '魚座', bodyPart: '足先', symbol: '♓', context: '魚座は足先やリンパ系など、身体の最末端を司るとされていました。' },
+        ];
+
+        const BODY_PARTS = [
+            { d: 'M150,50 Q160,40 170,50 T150,70 T130,50 Z' },
+            { d: 'M140,70 L160,70 L160,90 L140,90 Z' },
+            { d: 'M120,90 L140,90 L140,130 L120,130 Z M160,90 L180,90 L180,130 L160,130 Z' },
+            { d: 'M130,100 Q150,90 170,100 L170,140 Q150,150 130,140 Z' },
+            { d: 'M140,140 L160,140 L160,180 L140,180 Z' },
+            { d: 'M130,180 Q150,170 170,180 L170,220 Q150,230 130,220 Z' },
+            { d: 'M135,220 L165,220 L165,250 L135,250 Z' },
+            { d: 'M140,250 L160,250 L160,280 L140,280 Z' },
+            { d: 'M120,280 L140,280 L140,330 L120,330 Z M160,280 L180,280 L180,330 L160,330 Z' },
+            { d: 'M130,330 L140,330 L140,360 L130,360 Z M160,330 L170,330 L170,360 L160,360 Z' },
+            { d: 'M130,360 L140,360 L140,390 L130,390 Z M160,360 L170,360 L170,390 L160,390 Z' },
+            { d: 'M120,390 L140,390 L140,410 L120,410 Z M160,390 L180,390 L180,410 L160,410 Z' },
+        ];
+
+        function calculateMoonLongitude(date) {
+            const jd = (date.getTime() / 86400000) + 2440587.5;
+            const T = (jd - 2451545.0) / 36525;
+            let L = 218.316 + 481267.881 * T;
+            const M = 134.963 + 477198.867 * T;
+            const longitude = L + 6.289 * Math.sin(M * Math.PI / 180);
+            return (longitude % 360 + 360) % 360;
+        }
+
+        function calculateMoonPhase(date) {
+            const lunarCycle = 29.530588853;
+            const knownNewMoon = new Date('1970-01-07T20:00:00Z');
+            const diff = date.getTime() - knownNewMoon.getTime();
+            const days = diff / (1000 * 60 * 60 * 24);
+            const age = (days % lunarCycle + lunarCycle) % lunarCycle;
+            let phase = 'New Moon';
+            if (age < 1.8) phase = 'New Moon';
+            else if (age < 7.4) phase = 'Waxing Crescent';
+            else if (age < 11.1) phase = 'First Quarter';
+            else if (age < 14.8) phase = 'Waxing Gibbous';
+            else if (age < 18.5) phase = 'Full Moon';
+            else if (age < 22.1) phase = 'Waning Gibbous';
+            else if (age < 25.8) phase = 'Last Quarter';
+            else phase = 'Waning Crescent';
+            return { phase, age };
+        }
+
+        let currentDate = new Date();
+        let selectedSignIndex = null;
+
+        function update() {
+            const long = calculateMoonLongitude(currentDate);
+            const signIdx = Math.floor(long / 30);
+            const phaseData = calculateMoonPhase(currentDate);
+            
+            document.getElementById('moonHand').style.transform = `translate(-50%, -100%) rotate(${long}deg)`;
+            
+            const activeIdx = selectedSignIndex !== null ? selectedSignIndex : signIdx;
+            const sign = ZODIAC_SIGNS[activeIdx];
+
+            document.getElementById('signSymbol').innerText = sign.symbol;
+            document.getElementById('signLatin').innerText = sign.latin;
+            document.getElementById('signJapanese').innerText = sign.japanese;
+            document.getElementById('bodyPart').innerText = sign.bodyPart;
+            document.getElementById('histContext').innerText = sign.context;
+
+            document.getElementById('astroData').innerHTML = `
+                <p>Luna Longitude: ${long.toFixed(2)}°</p>
+                <p>Moon Phase: ${phaseData.phase}</p>
+                <p>Lunar Age: ${phaseData.age.toFixed(1)} days</p>
+                <p>Zodiac Sign: ${ZODIAC_SIGNS[signIdx].latin}</p>
+            `;
+
+            document.querySelectorAll('.body-part').forEach((el, i) => {
+                el.classList.toggle('active', i === activeIdx);
+            });
+        }
+
+        function init() {
+            const ringSVG = document.getElementById('zodiacRingSVG');
+            ZODIAC_SIGNS.forEach((sign, i) => {
+                const angle = i * 30;
+                const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                g.setAttribute('transform', `rotate(${angle}, 300, 300)`);
+                
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute('x1', '300'); line.setAttribute('y1', '50');
+                line.setAttribute('x2', '300'); line.setAttribute('y2', '80');
+                line.setAttribute('stroke', 'var(--color-gold-dark)'); line.setAttribute('stroke-width', '1');
+                
+                const textLatin = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                textLatin.setAttribute('x', '300'); textLatin.setAttribute('y', '40');
+                textLatin.setAttribute('text-anchor', 'middle'); textLatin.setAttribute('font-family', 'Cinzel');
+                textLatin.setAttribute('font-size', '12'); textLatin.setAttribute('fill', 'var(--color-ink)');
+                textLatin.setAttribute('transform', `rotate(-${angle}, 300, 40)`);
+                textLatin.textContent = sign.latin;
+
+                const textSym = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                textSym.setAttribute('x', '300'); textSym.setAttribute('y', '70');
+                textSym.setAttribute('text-anchor', 'middle'); textSym.setAttribute('font-size', '10');
+                textSym.setAttribute('fill', 'var(--color-gold-dark)');
+                textSym.setAttribute('transform', `rotate(-${angle}, 300, 70)`);
+                textSym.textContent = sign.symbol;
+
+                g.appendChild(line); g.appendChild(textLatin); g.appendChild(textSym);
+                ringSVG.appendChild(g);
+            });
+
+            const circle1 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            circle1.setAttribute('cx', '300'); circle1.setAttribute('cy', '300'); circle1.setAttribute('r', '250');
+            circle1.setAttribute('fill', 'none'); circle1.setAttribute('stroke', 'var(--color-gold)'); circle1.setAttribute('stroke-width', '2');
+            ringSVG.appendChild(circle1);
+
+            const manSVG = document.getElementById('zodiacManSVG');
+            BODY_PARTS.forEach((part, i) => {
+                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                path.setAttribute('d', part.d);
+                path.setAttribute('class', 'body-part');
+                path.setAttribute('fill', 'rgba(197, 160, 89, 0.3)');
+                path.setAttribute('stroke', 'var(--color-gold-dark)');
+                path.setAttribute('stroke-width', '1');
+                path.onclick = () => { selectedSignIndex = i; update(); };
+                manSVG.appendChild(path);
+            });
+
+            const dateInput = document.getElementById('dateInput');
+            // Local ISO string for datetime-local
+            const tzOffset = currentDate.getTimezoneOffset() * 60000;
+            const localISOTime = (new Date(currentDate - tzOffset)).toISOString().slice(0, 16);
+            dateInput.value = localISOTime;
+            dateInput.onchange = (e) => { currentDate = new Date(e.target.value); update(); };
+            
+            document.getElementById('resetBtn').onclick = () => { 
+                currentDate = new Date(); 
+                const tzOffsetReset = currentDate.getTimezoneOffset() * 60000;
+                dateInput.value = (new Date(currentDate - tzOffsetReset)).toISOString().slice(0, 16); 
+                update(); 
+            };
+            document.getElementById('nextDayBtn').onclick = () => { 
+                currentDate.setDate(currentDate.getDate() + 1); 
+                const tzOffsetNext = currentDate.getTimezoneOffset() * 60000;
+                dateInput.value = (new Date(currentDate - tzOffsetNext)).toISOString().slice(0, 16); 
+                update(); 
+            };
+            document.getElementById('prevDayBtn').onclick = () => { 
+                currentDate.setDate(currentDate.getDate() - 1); 
+                const tzOffsetPrev = currentDate.getTimezoneOffset() * 60000;
+                dateInput.value = (new Date(currentDate - tzOffsetPrev)).toISOString().slice(0, 16); 
+                update(); 
+            };
+
+            update();
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
