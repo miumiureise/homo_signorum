@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HOMO SIGNORUM — The Zodiacal Physician</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,12 +17,10 @@
             --color-ink: #3d352a;
             --font-cinzel: 'Cinzel', serif;
             --font-noto: 'Noto Serif JP', serif;
-            --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
         }
 
         * {
             box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -36,19 +34,18 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            overflow: hidden;
         }
 
         .app-container {
             background-color: var(--color-parchment);
             background-image: url('https://www.transparenttextures.com/patterns/beige-paper.png');
             width: 100%;
-            height: 100vh;
+            min-height: 100vh;
             display: grid;
             grid-template-columns: 300px 1fr 300px;
             grid-template-rows: 1fr auto;
             position: relative;
-            overflow: hidden;
+            overflow-x: hidden;
             box-shadow: inset 0 0 100px rgba(0,0,0,0.2);
         }
 
@@ -60,7 +57,6 @@
             gap: 1.5rem;
             overflow-y: auto;
             background: rgba(255,255,255,0.2);
-            z-index: 100;
         }
 
         .panel-title {
@@ -90,7 +86,7 @@
         input, select, button {
             background: transparent;
             border: 1px solid var(--color-gold);
-            padding: 0.75rem;
+            padding: 0.75rem; /* Increased for touch targets */
             font-family: var(--font-noto);
             color: var(--color-ink);
             cursor: pointer;
@@ -104,33 +100,17 @@
             justify-content: center;
             align-items: center;
             padding: 2rem;
-            overflow: hidden;
-            background: rgba(0,0,0,0.02);
+            min-height: 600px;
         }
 
-        /* Viewport for Zoom/Pan */
-        .instrument-viewport {
+        .zodiac-wheel-container {
             position: relative;
             width: 100%;
-            height: 100%;
+            max-width: 600px;
+            aspect-ratio: 1 / 1;
             display: flex;
             justify-content: center;
             align-items: center;
-            cursor: grab;
-            touch-action: none; /* Prevent browser pinch-zoom to use custom JS zoom */
-        }
-
-        .instrument-viewport:active {
-            cursor: grabbing;
-        }
-
-        .instrument-content {
-            position: relative;
-            width: 600px;
-            height: 600px;
-            transform-origin: center center;
-            transition: transform 0.1s ease-out;
-            will-change: transform;
         }
 
         .zodiac-ring {
@@ -147,8 +127,8 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 300px;
-            height: 420px;
+            width: 50%;
+            height: auto;
             z-index: 10;
         }
 
@@ -174,7 +154,7 @@
             top: 0;
             left: 50%;
             width: 4px;
-            height: 300px;
+            height: 50%;
             background: linear-gradient(to bottom, var(--color-crimson), transparent);
             transform-origin: bottom center;
             transform: translate(-50%, -100%) rotate(0deg);
@@ -192,29 +172,6 @@
             font-size: 20px;
         }
 
-        .zoom-controls {
-            position: absolute;
-            bottom: 2rem;
-            right: 2rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            z-index: 1000;
-        }
-
-        .zoom-btn {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: bold;
-            font-size: 1.2rem;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            background: var(--color-parchment);
-        }
-
         .footer-panel {
             grid-column: 1 / -1;
             border-top: 3px double var(--color-gold);
@@ -222,26 +179,22 @@
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
             padding: 1rem 2rem;
-            padding-bottom: calc(1rem + var(--safe-area-inset-bottom));
         }
 
         @media (max-width: 1024px) {
             .app-container {
                 grid-template-columns: 1fr;
-                grid-template-rows: auto auto auto auto;
-                overflow-y: auto;
-                height: auto;
+                grid-template-rows: auto;
                 overflow-x: hidden;
+                height: auto;
             }
             .panel {
                 border: none;
                 border-bottom: 1px solid rgba(0,0,0,0.1);
-                padding: 1.5rem 1rem;
             }
             .main-display {
-                padding: 0;
-                height: 80vh; /* Reserve space for instrument */
-                min-height: 400px;
+                padding: 2rem 1rem;
+                min-height: auto;
             }
             .footer-panel {
                 grid-template-columns: 1fr;
@@ -259,19 +212,21 @@
         }
 
         @media (max-width: 480px) {
+            .panel {
+                padding: 1.5rem 1rem;
+            }
+            .zodiac-wheel-container {
+                width: 90vw;
+                max-width: 400px;
+            }
             .panel-title {
                 font-size: 1.2rem;
-            }
-            .zoom-controls {
-                bottom: 1rem;
-                right: 1rem;
             }
         }
     </style>
 </head>
-<body id="body">
+<body>
     <div class="app-container">
-        <!-- Left Panel: Now top for mobile -->
         <div class="panel">
             <h2 class="panel-title">Temporis</h2>
             <div class="control-group">
@@ -294,27 +249,19 @@
             <div style="margin-top: 2rem; border-top: 1px solid var(--color-gold); padding-top: 1rem;">
                 <h3 style="font-family: Cinzel; font-size: 0.9rem; color: var(--color-crimson)">Astronomia</h3>
                 <div id="astroData" style="font-size: 0.8rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                    <!-- Data populated by JS -->
                 </div>
             </div>
         </div>
 
-        <!-- Center Display: The Instrument -->
         <div class="main-display">
-            <div class="instrument-viewport" id="viewport">
-                <div class="instrument-content" id="instrument">
-                    <svg viewBox="0 0 600 600" class="zodiac-ring" id="zodiacRingSVG" preserveAspectRatio="xMidYMid meet"></svg>
-                    <div class="moon-hand" id="moonHand"></div>
-                    <svg viewBox="0 0 300 420" class="zodiac-man" id="zodiacManSVG" preserveAspectRatio="xMidYMid meet"></svg>
-                </div>
-            </div>
-            <div class="zoom-controls">
-                <button class="zoom-btn" id="zoomIn">+</button>
-                <button class="zoom-btn" id="zoomOut">−</button>
-                <button class="zoom-btn" id="zoomReset" title="Reset View">⟲</button>
+            <div class="zodiac-wheel-container">
+                <svg viewBox="0 0 600 600" class="zodiac-ring" id="zodiacRingSVG" preserveAspectRatio="xMidYMid meet"></svg>
+                <div class="moon-hand" id="moonHand"></div>
+                <svg viewBox="0 0 300 420" class="zodiac-man" id="zodiacManSVG" preserveAspectRatio="xMidYMid meet"></svg>
             </div>
         </div>
 
-        <!-- Right Panel: Now below instrument for mobile -->
         <div class="panel">
             <h2 class="panel-title">Interpretatio</h2>
             <div style="text-align: center; margin-bottom: 1rem;">
@@ -333,7 +280,6 @@
             </div>
         </div>
 
-        <!-- Footer -->
         <div class="footer-panel">
             <div style="border-right: 1px solid var(--color-gold); padding-right: 1rem">
                 <h3 style="font-family: Cinzel; font-size: 0.9rem; color: var(--color-crimson)">Humores (Four Humors)</h3>
@@ -347,7 +293,7 @@
             <div style="padding: 0 1rem; border-right: 1px solid var(--color-gold)">
                 <h3 style="font-family: Cinzel; font-size: 0.9rem; color: var(--color-crimson)">Instructiones</h3>
                 <div style="font-size: 0.7rem; line-height: 1.4">
-                    日付を変更して月の位置を確認してください。ピンチ操作で拡大し、人体図の部位をクリックして詳細を確認できます。
+                    日付を変更して月の位置を確認してください。人体図の部位をクリックして詳細を確認できます。
                 </div>
             </div>
             <div style="padding-left: 1rem">
@@ -448,86 +394,6 @@
             });
         }
 
-        // --- Zoom & Pan Logic ---
-        let scale = 1;
-        let translateX = 0;
-        let translateY = 0;
-        let isDragging = false;
-        let startX, startY;
-        let initialScale = 1;
-        let startDist = 0;
-
-        const instrument = document.getElementById('instrument');
-        const viewport = document.getElementById('viewport');
-
-        function applyTransform() {
-            instrument.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
-        }
-
-        function resetView() {
-            scale = 1;
-            translateX = 0;
-            translateY = 0;
-            applyTransform();
-        }
-
-        viewport.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            startX = e.clientX - translateX;
-            startY = e.clientY - translateY;
-        });
-
-        window.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            translateX = e.clientX - startX;
-            translateY = e.clientY - startY;
-            applyTransform();
-        });
-
-        window.addEventListener('mouseup', () => { isDragging = false; });
-
-        // Touch Events
-        viewport.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 1) {
-                isDragging = true;
-                startX = e.touches[0].clientX - translateX;
-                startY = e.touches[0].clientY - translateY;
-            } else if (e.touches.length === 2) {
-                isDragging = false;
-                initialScale = scale;
-                startDist = Math.hypot(
-                    e.touches[0].clientX - e.touches[1].clientX,
-                    e.touches[0].clientY - e.touches[1].clientY
-                );
-            }
-        }, { passive: false });
-
-        viewport.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            if (e.touches.length === 1 && isDragging) {
-                translateX = e.touches[0].clientX - startX;
-                translateY = e.touches[0].clientY - startY;
-                applyTransform();
-            } else if (e.touches.length === 2) {
-                const dist = Math.hypot(
-                    e.touches[0].clientX - e.touches[1].clientX,
-                    e.touches[0].clientY - e.touches[1].clientY
-                );
-                scale = initialScale * (dist / startDist);
-                scale = Math.max(0.5, Math.min(scale, 4));
-                applyTransform();
-            }
-        }, { passive: false });
-
-        viewport.addEventListener('touchend', () => {
-            isDragging = false;
-        });
-
-        document.getElementById('zoomIn').onclick = () => { scale = Math.min(scale + 0.5, 4); applyTransform(); };
-        document.getElementById('zoomOut').onclick = () => { scale = Math.max(scale - 0.5, 0.5); applyTransform(); };
-        document.getElementById('zoomReset').onclick = resetView;
-
-        // --- Original Init ---
         function init() {
             const ringSVG = document.getElementById('zodiacRingSVG');
             ZODIAC_SIGNS.forEach((sign, i) => {
