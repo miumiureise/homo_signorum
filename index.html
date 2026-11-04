@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HOMO SIGNORUM — The Zodiacal Physician</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,6 +17,10 @@
             --color-ink: #3d352a;
             --font-cinzel: 'Cinzel', serif;
             --font-noto: 'Noto Serif JP', serif;
+        }
+
+        * {
+            box-sizing: border-box;
         }
 
         body {
@@ -35,13 +39,13 @@
         .app-container {
             background-color: var(--color-parchment);
             background-image: url('https://www.transparenttextures.com/patterns/beige-paper.png');
-            width: 100vw;
-            height: 100vh;
+            width: 100%;
+            min-height: 100vh;
             display: grid;
             grid-template-columns: 300px 1fr 300px;
-            grid-template-rows: 1fr 200px;
+            grid-template-rows: 1fr auto;
             position: relative;
-            overflow: hidden;
+            overflow-x: hidden;
             box-shadow: inset 0 0 100px rgba(0,0,0,0.2);
         }
 
@@ -82,10 +86,12 @@
         input, select, button {
             background: transparent;
             border: 1px solid var(--color-gold);
-            padding: 0.5rem;
+            padding: 0.75rem; /* Increased for touch targets */
             font-family: var(--font-noto);
             color: var(--color-ink);
             cursor: pointer;
+            font-size: 1rem;
+            width: 100%;
         }
 
         .main-display {
@@ -93,12 +99,27 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            padding: 2rem;
+            min-height: 600px;
         }
 
-        .zodiac-wheel {
+        .zodiac-wheel-container {
             position: relative;
-            width: 600px;
-            height: 600px;
+            width: 100%;
+            max-width: 600px;
+            aspect-ratio: 1 / 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .zodiac-ring {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
         }
 
         .zodiac-man {
@@ -106,8 +127,8 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 300px;
-            height: 450px;
+            width: 50%;
+            height: auto;
             z-index: 10;
         }
 
@@ -128,21 +149,12 @@
             filter: drop-shadow(0 0 5px var(--color-gold));
         }
 
-        .zodiac-ring {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-        }
-
         .moon-hand {
             position: absolute;
             top: 0;
             left: 50%;
             width: 4px;
-            height: 300px;
+            height: 50%;
             background: linear-gradient(to bottom, var(--color-crimson), transparent);
             transform-origin: bottom center;
             transform: translate(-50%, -100%) rotate(0deg);
@@ -173,22 +185,42 @@
             .app-container {
                 grid-template-columns: 1fr;
                 grid-template-rows: auto;
-                overflow-y: auto;
+                overflow-x: hidden;
                 height: auto;
             }
+            .panel {
+                border: none;
+                border-bottom: 1px solid rgba(0,0,0,0.1);
+            }
             .main-display {
-                padding: 4rem 0;
-            }
-            .zodiac-wheel {
-                width: 300px;
-                height: 300px;
-            }
-            .zodiac-man {
-                width: 150px;
-                height: 225px;
+                padding: 2rem 1rem;
+                min-height: auto;
             }
             .footer-panel {
                 grid-template-columns: 1fr;
+                gap: 2rem;
+                text-align: center;
+            }
+            .footer-panel div {
+                border-right: none !important;
+                border-bottom: 1px solid var(--color-gold);
+                padding-bottom: 1rem;
+            }
+            .footer-panel div:last-child {
+                border-bottom: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .panel {
+                padding: 1.5rem 1rem;
+            }
+            .zodiac-wheel-container {
+                width: 90vw;
+                max-width: 400px;
+            }
+            .panel-title {
+                font-size: 1.2rem;
             }
         }
     </style>
@@ -223,11 +255,11 @@
         </div>
 
         <div class="main-display">
-            <div class="zodiac-wheel">
-                <svg viewBox="0 0 600 600" class="zodiac-ring" id="zodiacRingSVG"></svg>
+            <div class="zodiac-wheel-container">
+                <svg viewBox="0 0 600 600" class="zodiac-ring" id="zodiacRingSVG" preserveAspectRatio="xMidYMid meet"></svg>
                 <div class="moon-hand" id="moonHand"></div>
+                <svg viewBox="0 0 300 420" class="zodiac-man" id="zodiacManSVG" preserveAspectRatio="xMidYMid meet"></svg>
             </div>
-            <svg viewBox="0 0 300 420" class="zodiac-man" id="zodiacManSVG"></svg>
         </div>
 
         <div class="panel">
@@ -410,7 +442,6 @@
             });
 
             const dateInput = document.getElementById('dateInput');
-            // Local ISO string for datetime-local
             const tzOffset = currentDate.getTimezoneOffset() * 60000;
             const localISOTime = (new Date(currentDate - tzOffset)).toISOString().slice(0, 16);
             dateInput.value = localISOTime;
